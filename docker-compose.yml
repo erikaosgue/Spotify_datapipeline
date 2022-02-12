@@ -1,0 +1,45 @@
+version: '1'
+services:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    networks:
+      - kafka_python
+  
+  kafka:
+    image: wurstmeister/kafka
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_ADVERTISED_HOST_NAME: kafka
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+    networks:
+      - kafka_python
+  
+  python:
+    tty: true
+    image: erikaosgue/spotify_datapipeline
+    user: root
+    container_name: python
+    volumes:
+        - ${HOST_DIR}:/usr/src/app
+    ports:
+      - '5000:5000'
+    depends_on: 
+      - kafka
+    environment:
+        CLIENT_ID: ${CLIENT_ID}
+        SECRET_ID: ${SECRET_ID}
+    networks:
+      - kafka_python
+
+networks:
+  kafka_python:
+   driver: bridge
+
+
