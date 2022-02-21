@@ -2,7 +2,7 @@
 Get playlist data from a scpefic user of spotify
 """
 import random
-from sp_producer import producer_func
+from producer import producer_func
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
