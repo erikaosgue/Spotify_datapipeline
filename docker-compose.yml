@@ -1,4 +1,4 @@
-version: '1'
+version: '3'
 services:
   zookeeper:
     image: wurstmeister/zookeeper
@@ -19,7 +19,7 @@ services:
   
   python:
     tty: true
-    image: erikaosgue/spotify_datapipeline
+    image: erikaosgue/spotify_datapipeline 
     user: root
     container_name: python
     volumes:
@@ -31,3 +31,44 @@ services:
     environment:
         CLIENT_ID: ${CLIENT_ID}
         SECRET_ID: ${SECRET_ID}
+
+  spark:
+    image: erikaosgue/spark 
+    user: root
+    container_name: master_spark
+    volumes:
+        - ${HOST_DIR_SPARK}:/opt/bitnami/spark/work
+    ports:
+      - '8080:8080'
+      - '8888:8888'
+    command: tail -F anything
+    environment:
+      - SPARK_MODE=master
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on: 
+      - kafka
+
+  spark-worker:
+    image: erikaosgue/spark 
+    container_name: worker_spark_1
+    command: tail -F anything
+    environment:
+      - SPARK_MODE=worker
+      - SPARK_MASTER_URL=spark://spark:7077
+      - SPARK_WORKER_MEMORY=1G
+      - SPARK_WORKER_CORES=1
+      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+      - SPARK_RPC_ENCRYPTION_ENABLED=no
+      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+      - SPARK_SSL_ENABLED=no
+    depends_on:
+      - spark
+
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - 27017:27017
